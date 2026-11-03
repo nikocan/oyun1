@@ -11,6 +11,7 @@ export interface Settings {
   lang: Lang;
   fast: boolean;
   vibrate: boolean;
+  sound: boolean;
 }
 
 export interface Meta {
@@ -56,7 +57,7 @@ export function loadSettings(): Settings {
   } catch {
     /* yok */
   }
-  return { lang: s.lang ?? lang, fast: s.fast ?? false, vibrate: s.vibrate ?? true };
+  return { lang: s.lang ?? lang, fast: s.fast ?? false, vibrate: s.vibrate ?? true, sound: s.sound ?? true };
 }
 
 export const saveSettings = (s: Settings) => write(KEY_SETTINGS, s);

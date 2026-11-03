@@ -191,7 +191,7 @@ export function isPairType(t: HandType) {
 // ---------------------------------------------------------------- ilerleme
 
 export const MASA_COUNT = 8;
-const MASA_BASE = [200, 500, 1200, 3000, 7000, 14000, 26000, 40000];
+const MASA_BASE = [200, 450, 900, 1700, 3000, 5000, 8000, 12000];
 const STAGE_MULT = [1, 1.5, 2];
 export const STAGE_REWARD = [3, 4, 5];
 

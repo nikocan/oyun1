@@ -25,6 +25,8 @@ import {
 } from './engine';
 import { COLOR_NAMES, HAND_DESC, HAND_NAMES, HOW_TO, type Key, setLang, t, tx } from './i18n';
 import { HAND_ORDER, MASA_COUNT, MAX_SELECT, type Tile, handValue, sortTiles } from './rules';
+import { DEMO_MASA, PRICE, STORE_CONNECTED, buyFullVersion, isLocked, isUnlocked, restorePurchases } from './purchase';
+import { sClick, sCoin, sLose, sTick, sTotal, sWin, setSoundEnabled } from './sound';
 import { loadMeta, loadRun, loadSettings, saveMeta, saveRun, saveSettings } from './storage';
 
 // ---------------------------------------------------------------- durum
@@ -36,7 +38,8 @@ type Modal =
   | { kind: 'charm'; idx: number }
   | { kind: 'offer'; idx: number }
   | { kind: 'hands' }
-  | { kind: 'pause' };
+  | { kind: 'pause' }
+  | { kind: 'unlock' };
 
 const app = document.getElementById('app')!;
 const settings = loadSettings();
@@ -51,6 +54,7 @@ let lastPlay: PlayResult | null = null;
 let sortMode: 'num' | 'color' | null = null;
 
 setLang(settings.lang);
+setSoundEnabled(settings.sound);
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, settings.fast ? ms * 0.45 : ms));
@@ -126,7 +130,7 @@ function menuHTML() {
       <button class="btn" data-act="goto" data-to="news">${t('whatsNew')}${isNew ? `<span class="badge">${t('newBadge')}</span>` : ''}</button>
       <button class="btn" data-act="goto" data-to="settings">${t('settings')}</button>
     </nav>
-    <footer class="menu-foot">${t('version')} ${CURRENT_VERSION}</footer>
+    <footer class="menu-foot">${t('version')} ${CURRENT_VERSION} · ${isUnlocked() ? t('editionFull') : t('editionDemo')}</footer>
   </main>`;
 }
 
@@ -186,6 +190,10 @@ function settingsHTML() {
       ['normal', t('speedNormal'), !settings.fast],
       ['fast', t('speedFast'), settings.fast],
     ])}</div>
+    <div class="setting"><span>${t('sound')}</span>${seg('sound', [
+      ['on', t('on'), settings.sound],
+      ['off', t('off'), !settings.sound],
+    ])}</div>
     <div class="setting"><span>${t('vibration')}</span>${seg('vibrate', [
       ['on', t('on'), settings.vibrate],
       ['off', t('off'), !settings.vibrate],
@@ -195,6 +203,9 @@ function settingsHTML() {
       <div><dt>${t('statsBest')}</dt><dd>${meta.bestMasa}/${MASA_COUNT}</dd></div>
       <div><dt>${t('statsWins')}</dt><dd>${meta.wins}</dd></div>
     </dl>
+    <div class="setting"><span>${t('edition')}</span><b>${isUnlocked() ? t('editionFull') : t('editionDemo')}</b></div>
+    ${isUnlocked() ? '' : `<button class="btn primary" data-act="openUnlock">${t('unlockCta', { price: tx(PRICE) })}</button>`}
+    <button class="btn" data-act="restore">${t('restore')}</button>
     <p class="muted">${t('version')} ${CURRENT_VERSION}</p>`,
   );
 }
@@ -309,6 +320,7 @@ function shopHTML(r: RunState) {
     <section class="shop-head">
       <h2>${t('shop')}</h2>
       <p class="next">${t('nextTable')}: <b>${t('table')} ${nextMasa} · ${stageName(nextStage)}</b>
+      ${r.stage === 2 && isLocked(r.masa + 1) ? `<br><span class="lock-note">${t('demoEndsHere')}</span>` : ''}
       ${nextBoss ? `<br><span class="boss-inline">${t('nextBoss')}: <b>${esc(tx(nextBoss.name))}</b> — ${esc(tx(nextBoss.desc))}</span>` : ''}</p>
     </section>
     ${charmsRow(r)}
@@ -364,6 +376,13 @@ function modalHTML(): string {
       <button class="btn" data-act="goto" data-to="howto">${t('howTo')}</button>
       <button class="btn" data-act="goto" data-to="settings">${t('settings')}</button>
       <button class="btn" data-act="toMenu">${t('quitToMenu')}</button></div>`;
+  }
+  if (modal.kind === 'unlock') {
+    inner = `<h2>${t('unlockTitle')}</h2><p>${t('unlockText', { n: DEMO_MASA })}</p>
+      <ul class="perks"><li>${t('perk1')}</li><li>${t('perk2')}</li><li>${t('perk3')}</li></ul>
+      ${STORE_CONNECTED ? '' : `<p class="test-note">${t('testMode')}</p>`}
+      <button class="btn primary" data-act="unlockBuy">${t('unlockCta', { price: tx(PRICE) })}</button>
+      <div class="row"><button class="btn" data-act="restore">${t('restore')}</button><button class="btn" data-act="closeModal">${t('later')}</button></div>`;
   }
   return `<div class="overlay" data-act="closeModalBg"><div class="sheet" role="dialog">${inner}</div></div>`;
 }
@@ -424,7 +443,9 @@ async function doPlay() {
   const chipsEl = document.getElementById('chips');
   const multEl = document.getElementById('mult');
   const stepDelay = res.steps.length > 14 ? 200 : 300;
+  let stepNo = 0;
   for (const s of res.steps) {
+    sTick(stepNo++, s.tone);
     const target =
       s.target.kind === 'tile'
         ? document.querySelector(`#played [data-tid="${s.target.id}"]`)
@@ -444,6 +465,7 @@ async function doPlay() {
   // toplamı skora say
   const hn = document.getElementById('handname');
   if (hn) hn.innerHTML = `<span class="total">= ${fmtNum(res.total)}</span>`;
+  sTotal();
   const scoreEl = document.getElementById('score');
   const bar = document.getElementById('bar');
   const target = run.round.target;
@@ -459,7 +481,10 @@ async function doPlay() {
   lastPlay = null;
   busy = false;
   if (outcome !== 'continue') recordEnd();
-  if (outcome === 'won') buzz(30);
+  if (outcome === 'won') {
+    buzz(30);
+    sWin();
+  } else if (outcome === 'lost') sLose();
   persist();
   render();
 }
@@ -545,6 +570,32 @@ app.addEventListener('click', (e) => {
       settings.fast = el.dataset.v === 'fast';
       saveSettings(settings);
       break;
+    case 'sound':
+      settings.sound = el.dataset.v === 'on';
+      setSoundEnabled(settings.sound);
+      saveSettings(settings);
+      if (settings.sound) sCoin();
+      break;
+    case 'openUnlock':
+      modal = { kind: 'unlock' };
+      break;
+    case 'unlockBuy':
+      void buyFullVersion().then((ok) => {
+        if (ok) {
+          modal = null;
+          sWin();
+          render();
+          toast(STORE_CONNECTED ? t('unlocked') : t('unlockedTest'));
+        }
+      });
+      return;
+    case 'restore':
+      void restorePurchases().then((ok) => {
+        if (ok) modal = null;
+        render();
+        toast(ok ? t('restored') : t('nothingToRestore'));
+      });
+      return;
     case 'vibrate':
       settings.vibrate = el.dataset.v === 'on';
       saveSettings(settings);
@@ -559,6 +610,7 @@ app.addEventListener('click', (e) => {
         return;
       }
       buzz(6);
+      sClick();
       break;
     }
     case 'sort':
@@ -603,6 +655,7 @@ app.addEventListener('click', (e) => {
       else if (err === 'slots') toast(t('slotsFull'));
       else if (!err) {
         buzz(15);
+        sCoin();
         modal = null;
         persist();
       }
@@ -614,6 +667,10 @@ app.addEventListener('click', (e) => {
       break;
     case 'nextRound':
       if (!run) return;
+      if (run.stage === 2 && isLocked(run.masa + 1)) {
+        modal = { kind: 'unlock' };
+        break;
+      }
       nextRound(run);
       selected = new Set();
       if (sortMode && run.round) run.round.hand = sortTiles(run.round.hand, sortMode);

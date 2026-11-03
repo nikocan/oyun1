@@ -1,5 +1,6 @@
 // Basit bot ile zorluk dengesi simülasyonu: npx vite-node scripts/sim.ts
-import { buy, discard, newRun, nextRound, openShop, play, scorePlay, settle } from '../src/engine';
+import { buy, discard, newRun, nextRound, openShop, play, reroll, scorePlay, settle } from '../src/engine';
+import { CHARM_BY_ID } from '../src/content';
 import type { Tile } from '../src/rules';
 
 function combos(arr: Tile[], k: number, start = 0, cur: Tile[] = [], out: Tile[][] = []) {
@@ -28,7 +29,13 @@ for (let g = 0; g < N; g++) {
       play(run, best.map((t) => t.id)); settle(run);
     } else if (run.phase === 'reward') openShop(run);
     else if (run.phase === 'shop') {
-      for (let i = 0; i < run.shop!.offers.length; i++) buy(run, i);
+      // "iyi oyuncu": önce nadir tılsımlar, sonra seri/per defterleri, sonra kalanlar
+      const score = (o: any) => o.kind === 'charm' ? 10 + CHARM_BY_ID[o.id].rarity * 5 : o.kind === 'book' ? (/seri|per/.test(o.hand) ? 14 : 2) : 6;
+      for (let pass = 0; pass < 3; pass++) {
+        const order = run.shop!.offers.map((o, i) => [score(o), i] as const).sort((a, b) => b[0] - a[0]);
+        for (const [, i] of order) buy(run, i);
+        if (run.gold >= run.shop!.rerollCost + 6) reroll(run); else break;
+      }
       nextRound(run);
     }
   }

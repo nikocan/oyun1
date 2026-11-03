@@ -11,6 +11,18 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: '0.2.0',
+    date: '2026-11-03',
+    title: { tr: 'Ses, tam sürüm ve mobil hazırlık', en: 'Sound, full version and mobile prep' },
+    items: [
+      { tr: 'Ses efektleri: taş tıkı, puan sayımı, kazanma ve altın sesleri. Ayarlar’dan kapatılabilir.', en: 'Sound effects: tile clicks, score ticks, win and coin sounds. Can be turned off in Settings.' },
+      { tr: 'Demo ve tam sürüm: ilk 3 masa ücretsiz, devamı tek seferlik ödemeyle açılıyor (şimdilik test modu, ödeme alınmıyor).', en: 'Demo and full version: the first 3 tables are free, the rest unlock with a one-time purchase (test mode for now, no payment taken).' },
+      { tr: '“Satın alımı geri yükle” düğmesi ve Ayarlar’da sürüm türü (Demo / Tam).', en: '“Restore purchase” button and edition (Demo / Full) in Settings.' },
+      { tr: 'Zorluk dengesi: sonraki masaların hedefleri düşürüldü, iyi bir oyuncu artık 8. masayı geçebilir.', en: 'Balance: later table targets lowered so a good player can now clear table 8.' },
+      { tr: 'Android ve iOS uygulama projeleri, uygulama ikonu ve açılış ekranı hazırlandı. Oyun dikey ekrana kilitli.', en: 'Android and iOS app projects, app icon and splash screen created. The game is locked to portrait.' },
+    ],
+  },
+  {
     version: '0.1.0',
     date: '2026-11-03',
     title: { tr: 'İlk oynanabilir sürüm', en: 'First playable build' },

@@ -1,0 +1,8 @@
+{
+  "appId": "com.tasustasi.game",
+  "appName": "Taş Ustası",
+  "webDir": "dist",
+  "backgroundColor": "#0e4535",
+  "android": { "backgroundColor": "#0e4535" },
+  "ios": { "backgroundColor": "#0e4535", "contentInset": "never" }
+}
