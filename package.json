@@ -1,0 +1,22 @@
+{
+  "name": "tas-ustasi",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "build:artifact": "vite build --mode artifact && node scripts/artifact.mjs",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^6.4.5",
+    "vite-plugin-singlefile": "^2.3.0",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.2.6",
+    "@fontsource/alfa-slab-one": "^5.2.5"
+  }
+}
