@@ -15,3 +15,6 @@ Okey taşlarıyla oynanan, tek seferlik ödemeli mobil roguelike (iOS + Android)
 - `src/engine.ts` — oyun akışı, çarşı
 - `src/main.ts` — arayüz
 - `src/changelog.ts` — oyun içi "Yenilikler" ekranı (her güncellemede güncellenir)
+- `src/sound.ts`, `src/purchase.ts` — sesler ve tam sürüm kilidi
+
+
