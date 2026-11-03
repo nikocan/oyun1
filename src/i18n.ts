@@ -98,6 +98,7 @@ const S = {
   testMode: ['Test modu: mağaza ödemesi henüz bağlı değil, düğme kilidi ücretsiz açar.', 'Test mode: store payments are not connected yet, the button unlocks for free.'],
   unlocked: ['Tam sürüm açıldı. Teşekkürler!', 'Full game unlocked. Thank you!'],
   unlockedTest: ['Tam sürüm açıldı (test modu, ödeme alınmadı).', 'Full game unlocked (test mode, no payment taken).'],
+  purchaseFailed: ['Satın alma tamamlanamadı. İnternet bağlantını kontrol edip tekrar dene.', 'The purchase could not be completed. Check your connection and try again.'],
   restored: ['Tam sürüm geri yüklendi.', 'Full game restored.'],
   nothingToRestore: ['Geri yüklenecek satın alım bulunamadı.', 'No purchase found to restore.'],
   demoEndsHere: ['Demo burada bitiyor: sonraki masa tam sürümde.', 'The demo ends here: the next table is in the full game.'],

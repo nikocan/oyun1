@@ -1,7 +1,7 @@
 {
   "name": "tas-ustasi",
   "private": true,
-  "version": "0.2.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
@@ -21,6 +21,7 @@
     "@capacitor/android": "^8.6.0",
     "@capacitor/core": "^8.6.0",
     "@capacitor/ios": "^8.6.0",
+    "@capgo/native-purchases": "^8.9.6",
     "@fontsource-variable/bricolage-grotesque": "^5.2.6",
     "@fontsource/alfa-slab-one": "^5.2.5"
   }

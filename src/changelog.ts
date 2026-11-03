@@ -11,6 +11,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: '1.0.0',
+    date: '2026-11-03',
+    title: { tr: 'App Store sürümü', en: 'App Store release' },
+    items: [
+      { tr: 'Gerçek mağaza ödemesi: tam sürüm App Store ve Google Play üzerinden tek seferlik satın alınıyor.', en: 'Real store payments: the full version is a one-time purchase through the App Store and Google Play.' },
+      { tr: 'Fiyat, telefonun ülkesine göre mağazadan alınıp gösteriliyor.', en: 'The price is shown in your local currency, straight from the store.' },
+      { tr: '“Satın alımı geri yükle” artık mağazadaki önceki satın alımını buluyor; yeni telefonda da çalışır.', en: '“Restore purchase” now finds your earlier store purchase, including on a new phone.' },
+      { tr: 'Uygulama yalnızca iPhone için hazırlandı.', en: 'The app is now iPhone-only.' },
+    ],
+  },
+  {
     version: '0.2.0',
     date: '2026-11-03',
     title: { tr: 'Ses, tam sürüm ve mobil hazırlık', en: 'Sound, full version and mobile prep' },

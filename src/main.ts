@@ -25,7 +25,7 @@ import {
 } from './engine';
 import { COLOR_NAMES, HAND_DESC, HAND_NAMES, HOW_TO, type Key, setLang, t, tx } from './i18n';
 import { HAND_ORDER, MASA_COUNT, MAX_SELECT, type Tile, handValue, sortTiles } from './rules';
-import { DEMO_MASA, PRICE, STORE_CONNECTED, buyFullVersion, isLocked, isUnlocked, restorePurchases } from './purchase';
+import { DEMO_MASA, STORE_CONNECTED, buyFullVersion, initPurchases, isLocked, isUnlocked, priceLabel, restorePurchases } from './purchase';
 import { sClick, sCoin, sLose, sTick, sTotal, sWin, setSoundEnabled } from './sound';
 import { loadMeta, loadRun, loadSettings, saveMeta, saveRun, saveSettings } from './storage';
 
@@ -204,7 +204,7 @@ function settingsHTML() {
       <div><dt>${t('statsWins')}</dt><dd>${meta.wins}</dd></div>
     </dl>
     <div class="setting"><span>${t('edition')}</span><b>${isUnlocked() ? t('editionFull') : t('editionDemo')}</b></div>
-    ${isUnlocked() ? '' : `<button class="btn primary" data-act="openUnlock">${t('unlockCta', { price: tx(PRICE) })}</button>`}
+    ${isUnlocked() ? '' : `<button class="btn primary" data-act="openUnlock">${t('unlockCta', { price: priceLabel(settings.lang) })}</button>`}
     <button class="btn" data-act="restore">${t('restore')}</button>
     <p class="muted">${t('version')} ${CURRENT_VERSION}</p>`,
   );
@@ -381,7 +381,7 @@ function modalHTML(): string {
     inner = `<h2>${t('unlockTitle')}</h2><p>${t('unlockText', { n: DEMO_MASA })}</p>
       <ul class="perks"><li>${t('perk1')}</li><li>${t('perk2')}</li><li>${t('perk3')}</li></ul>
       ${STORE_CONNECTED ? '' : `<p class="test-note">${t('testMode')}</p>`}
-      <button class="btn primary" data-act="unlockBuy">${t('unlockCta', { price: tx(PRICE) })}</button>
+      <button class="btn primary" data-act="unlockBuy">${t('unlockCta', { price: priceLabel(settings.lang) })}</button>
       <div class="row"><button class="btn" data-act="restore">${t('restore')}</button><button class="btn" data-act="closeModal">${t('later')}</button></div>`;
   }
   return `<div class="overlay" data-act="closeModalBg"><div class="sheet" role="dialog">${inner}</div></div>`;
@@ -580,13 +580,17 @@ app.addEventListener('click', (e) => {
       modal = { kind: 'unlock' };
       break;
     case 'unlockBuy':
-      void buyFullVersion().then((ok) => {
-        if (ok) {
+      if (busy) return;
+      busy = true;
+      void buyFullVersion().then((res) => {
+        busy = false;
+        if (res === 'ok') {
           modal = null;
           sWin();
-          render();
-          toast(STORE_CONNECTED ? t('unlocked') : t('unlockedTest'));
         }
+        render();
+        if (res === 'ok') toast(STORE_CONNECTED ? t('unlocked') : t('unlockedTest'));
+        else if (res === 'error') toast(t('purchaseFailed'));
       });
       return;
     case 'restore':
@@ -688,3 +692,5 @@ document.addEventListener('keydown', (e) => {
 });
 
 render();
+// Mağaza fiyatını ve önceki satın alımı arka planda kontrol et.
+void initPurchases().then(render);
